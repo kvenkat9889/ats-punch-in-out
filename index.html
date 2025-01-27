@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Attendance Portal</title>
+    <!-- Add Font Awesome CDN link -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 80vh;
+            background: linear-gradient(135deg, #0e4be7 0%, #ee0754 100%);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            transform: translateY(0);
+            transition: transform 0.3s ease;
+            margin-bottom: 2rem;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 2rem;
+            position: relative;
+            width: 100%;
+        }
+
+        .card-title {
+            color: rgb(20, 20, 116);
+            font-size: 1.5rem;
+            font-weight: 600;
+            opacity: 0;
+            text-shadow: 2px 2px 6px #d2aeae;
+            animation: slideInLeft 0.5s ease forwards;
+        }
+
+        .clock-icon {
+            font-size: 2rem;
+            color: #1a365d;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            animation: rotateIn 1s ease forwards;
+        }
+
+        .logo {
+            width: 70px;
+            height: auto;
+            position: absolute;
+            top: -1rem;
+            left: 1rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            position: relative;
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+
+        .input-group:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #4a5568;
+            font-size: 0.875rem;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.2);
+        }
+
+        .status-container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1.5rem 0;
+            opacity: 0;
+            animation: slideInRight 0.5s ease forwards 0.4s;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0.5rem 0;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+            position: relative;
+        }
+
+        .status-dot::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 50%;
+            border: 2px solid currentColor;
+            opacity: 0;
+            animation: pulse 2s infinite;
+        }
+
+        .status-in {
+            background-color: rgba(72, 187, 120, 0.1);
+            color: #48bb78;
+        }
+
+        .status-out {
+            background-color: rgba(229, 62, 62, 0.1);
+            color: #e53e3e;
+        }
+
+        .button {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #1a365d 0%, #2a4365 100%);
+            color: white;
+            border: none;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            opacity: 0;
+            animation: slideInUp 0.5s ease forwards 0.6s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .button:disabled {
+            background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+            cursor: not-allowed;
+        }
+
+        .button:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(26, 54, 93, 0.25);
+        }
+
+        .button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            opacity: 0;
+            border-radius: 100%;
+            transform: scale(1, 1) translate(-50%);
+            transform-origin: 50% 50%;
+        }
+
+        .button:not(:disabled):active::after {
+            animation: ripple 1s ease-out;
+        }
+
+        @keyframes ripple {
+            0% {
+                transform: scale(0, 0);
+                opacity: 0.5;
+            }
+            100% {
+                transform: scale(100, 100);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes rotateIn {
+            from {
+                transform: rotate(-180deg);
+                opacity: 0;
+            }
+            to {
+                transform: rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 0.5;
+            }
+            70% {
+                transform: scale(2);
+                opacity: 0;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #1d1e81, #9b2222);
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .dashboard-title {
+            font-size: 2.5rem;
+            color: rgb(255, 255, 255);
+        }
+
+        .clear-button {
+            background: rgb(29, 171, 171);
+            color: white;
+            border: 2px solid rgb(247, 243, 243);
+            padding: 0.75rem 2rem;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        .employee-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 2rem;
+            padding: 0 2rem;
+            width: 100%;
+            max-width: 1200px;
+        }
+
+        .employee-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+        }
+
+        .employee-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .employee-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .employee-id {
+            font-size: 1rem;
+            color: #64748b;
+        }
+
+        .status-badge {
+            padding: 0.75rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.875rem;
+            position: relative;
+            width: 46%;
+        }
+
+        .status-in {
+            background: #158a5f;
+            color: white;
+        }
+
+        .status-out {
+            background: #ea0707;
+            color: white;
+        }
+
+        .employee-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .employee-detail-overlay.active {
+            display: flex;
+        }
+
+        .employee-detail-card {
+            background: rgb(247, 248, 250);
+            border-radius: 55px;
+            padding: 3rem;
+            width: 100%;
+            max-width: 550px;
+            position: relative;
+        }
+
+        .close-button {
+            background: none;
+            border: none;
+            color: #020202;
+            cursor: pointer;
+            padding: 5px;
+            font-size: 1.5rem;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .time-record {
+            background: #f8fafc;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+
+        .time-label {
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .time-value {
+            font-weight: 500;
+            font-size: 1.125rem;
+        }
+
+        .duration {
+            color: #48bb78;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Punch-in/Out Portal Section -->
+    <div class="container">
+        <div class="card-header">
+            <img src="ATS Wallpaper.jpg" alt="Company Logo" class="logo">
+            <h2 class="card-title">PUNCH-IN/OUT Portal</h2>
+            <i class="fas fa-clock clock-icon"></i>
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="currentDate">Date</label>
+            <input type="text" id="currentDate" class="input-field" readonly>
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="employeeId">Employee ID</label>
+            <input type="text" id="employeeId" class="input-field" placeholder="Enter your 7-digit ID">
+        </div>
+        <div class="input-group">
+            <label class="input-label" for="employeeName">Full Name</label>
+            <input type="text" id="employeeName" class="input-field" placeholder="Enter your full name">
+        </div>
+        <div class="status-container">
+            <div class="status-row">
+                <span class="status-label">Current Status:</span>
+                <div class="status-badge status-out">
+                    <span class="status-dot"></span>
+                    <span class="status-text">Punched Out</span>
+                </div>
+            </div>
+            <div class="status-row">
+                <span class="status-label">Time:</span>
+                <span class="time">--:--:--</span>
+            </div>
+        </div>
+        <button class="button" id="punchButton" disabled>Punch In</button>
+    </div>
+
+    <!-- Admin Attendance Section -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">ADMIN ATTENDANCE</h1>
+        <button class="clear-button" onclick="showModal()">Clear All Records</button>
+    </div>
+    <div id="employeeGrid" class="employee-grid"></div>
+    <div class="employee-detail-overlay" id="employeeDetailOverlay">
+        <div class="employee-detail-card">
+            <div class="detail-header">
+                <center><h2 class="employee-detail-title">Employee Details</h2></center>
+                <button class="close-button" onclick="hideEmployeeDetail()">×</button>
+            </div>
+            <div class="detail-info" id="employeeDetailContent"></div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+    const employeeIdInput = document.getElementById('employeeId');
+    const employeeNameInput = document.getElementById('employeeName');
+    const statusBadge = document.querySelector('.status-badge');
+    const statusText = document.querySelector('.status-text');
+    const punchButton = document.getElementById('punchButton');
+    const timeDisplay = document.querySelector('.time');
+    const currentDateInput = document.getElementById('currentDate');
+
+    let status = 'out';
+
+    function validateEmployeeId(input) {
+        const employeeIdRegex = /^ATS0\d{3}$/;
+        return employeeIdRegex.test(input);
+    }
+
+    function validateEmployeeName(input) {
+        const alphabetSpaceRegex = /^[a-zA-Z\s]{5,}$/;
+        return alphabetSpaceRegex.test(input);
+    }
+
+    function updateValidation() {
+        const isIdValid = validateEmployeeId(employeeIdInput.value);
+        const isNameValid = validateEmployeeName(employeeNameInput.value);
+        punchButton.disabled = !(isIdValid && isNameValid);
+    }
+
+    function updateTime() {
+        const now = new Date();
+        timeDisplay.textContent = now.toLocaleTimeString();
+    }
+
+    function updateDate() {
+        const now = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDateInput.value = now.toLocaleDateString('en-US', options);
+    }
+
+    function toggleStatus() {
+        status = status === 'in' ? 'out' : 'in';
+
+        statusBadge.className = `status-badge status-${status}`;
+        statusText.textContent = `Punched ${status.charAt(0).toUpperCase() + status.slice(1)}`;
+        punchButton.textContent = `Punch ${status === 'in' ? 'Out' : 'In'}`;
+
+        const record = {
+            id: employeeIdInput.value,
+            name: employeeNameInput.value,
+            status: status,
+            timestamp: new Date().toLocaleTimeString(),
+            date: new Date().toLocaleDateString()
+        };
+
+        const records = JSON.parse(localStorage.getItem('punchRecords') || '[]');
+        records.push(record);
+        localStorage.setItem('punchRecords', JSON.stringify(records));
+
+        employeeIdInput.disabled = status === 'in';
+        employeeNameInput.disabled = status === 'in';
+    }
+
+    employeeIdInput.addEventListener('input', updateValidation);
+    employeeNameInput.addEventListener('input', updateValidation);
+    punchButton.addEventListener('click', toggleStatus);
+
+    setInterval(updateTime, 1000);
+    updateTime();
+    updateDate();
+
+    function calculateDuration(inTime, outTime) {
+        const inDate = new Date(`1970/01/01 ${inTime}`);
+        const outDate = new Date(`1970/01/01 ${outTime}`);
+        
+        const durationInMillis = outDate - inDate;
+
+        if (durationInMillis < 0) {
+            return 'Invalid duration';
+        }
+
+        const hours = Math.floor(durationInMillis / 3600000);
+        const minutes = Math.floor((durationInMillis % 3600000) / 60000);
+
+        return `${hours}h ${minutes}m`;
+    }
+
+    function getDayName(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date)) {
+            console.error("Invalid date format:", dateStr);
+            return "Invalid Date";
+        }
+        return date.toLocaleDateString('en-US', { weekday: 'long' });
+    }
+
+    function showEmployeeDetail(employeeId) {
+        const records = JSON.parse(localStorage.getItem('punchRecords') || '[]');
+        const employeeRecords = records.filter(record => record.id === employeeId);
+
+        if (employeeRecords.length === 0) return;
+
+        const latestRecord = employeeRecords[employeeRecords.length - 1];
+        const dayRecords = new Map();
+
+        employeeRecords.forEach(record => {
+            if (!dayRecords.has(record.date)) {
+                dayRecords.set(record.date, {
+                    date: record.date,
+                    day: getDayName(record.date),
+                    inTime: record.status === 'in' ? record.timestamp : null,
+                    outTime: record.status === 'out' ? record.timestamp : null
+                });
+            } else {
+                const dayRecord = dayRecords.get(record.date);
+                if (record.status === 'in') dayRecord.inTime = record.timestamp;
+                if (record.status === 'out') dayRecord.outTime = record.timestamp;
+            }
+        });
+
+        const detailContent = document.getElementById('employeeDetailContent');
+        detailContent.innerHTML = `
+            <div>
+                <br>
+                <div><strong>Employee Name:</strong> ${latestRecord.name}</div>
+                <div><strong>Employee ID:</strong> ${latestRecord.id}</div>
+                <div><strong>Day:</strong> ${new Date().toLocaleDateString('en-US', { weekday: 'long' })}</div>
+            </div>
+            <br>
+            <center><h3>Attendance Records</h3></center>
+            ${Array.from(dayRecords.values()).reverse().map(record => `
+                <div class="time-record">
+                    <div><strong>Date:</strong> ${record.date}</div>
+                    <div><strong>Duration:</strong> 
+                        ${record.inTime && record.outTime ? calculateDuration(record.inTime, record.outTime) : 'N/A'}
+                    </div>
+                    <div><strong>Punch In:</strong> ${record.inTime || 'N/A'}</div>
+                    <div><strong>Punch Out:</strong> ${record.outTime || 'N/A'}</div>    
+                </div>
+            `).join('')}
+        `;
+
+        const overlay = document.getElementById('employeeDetailOverlay');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function hideEmployeeDetail() {
+        const overlay = document.getElementById('employeeDetailOverlay');
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function updateEmployeeGrid() {
+        const records = JSON.parse(localStorage.getItem('punchRecords') || '[]');
+        const today = new Date().toLocaleDateString();
+        const latestRecords = new Map();
+
+        records.forEach(record => {
+            if (record.date === today) {
+                latestRecords.set(record.id, record);
+            }
+        });
+
+        const employeeGrid = document.getElementById('employeeGrid');
+        employeeGrid.innerHTML = Array.from(latestRecords.values())
+            .map(record => `
+                <div class="employee-card" onclick="showEmployeeDetail('${record.id}')">
+                    <div class="employee-info">
+                        <div class="employee-details">
+                            <h3 class="employee-name">${record.name}</h3>
+                            <p class="employee-id">ID: ${record.id}</p>
+                            <p>Last Update: ${record.timestamp}</p>
+                        </div>
+                        <div class="status-badge ${record.status === 'in' ? 'status-in' : 'status-out'}">
+                            <span>Punched ${record.status.charAt(0).toUpperCase() + record.status.slice(1)}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+    }
+
+    function showModal() {
+        const confirmClear = confirm("Are you sure you want to clear all records?");
+        if (confirmClear) {
+            clearRecords();
+        }
+    }
+
+    function clearRecords() {
+        localStorage.removeItem('punchRecords');
+        updateEmployeeGrid();
+        alert("All records have been cleared!");
+    }
+
+    updateEmployeeGrid();
+</script>
+</body>
+</html>
